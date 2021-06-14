@@ -1,0 +1,37 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+  opencensus:
+  jaeger:
+    protocols:
+      grpc:
+      thrift_http:
+  zipkin:
+
+exporters:
+  otlp:
+    endpoint: "otel-collector:4317"
+    insecure: true
+  logging:
+    loglevel: debug
+
+processors:
+  batch:
+
+extensions:
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp, opencensus, jaeger, zipkin]
+      processors: [batch]
+      exporters: [otlp, logging]
+    metrics:
+      receivers: [otlp, opencensus]
+      processors: [batch]
+      exporters: [otlp, logging]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp, logging]

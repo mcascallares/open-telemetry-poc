@@ -1,0 +1,52 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+
+exporters:
+  kafka:
+    protocol_version: 2.0.0
+    retry_on_failure:
+      enabled: true
+      initial_interval: 5s
+      max_interval: 30s
+      max_elapsed_time: 120s
+  kafka/traces:
+    brokers:
+      - kafka:9092
+    topic: otlp_spans
+  kafka/metrics:
+    brokers:
+      - kafka:9092 
+    topic: otlp_metrics
+  kafka/logs:
+    brokers:
+      - kafka:9092 
+    topic: otlp_logs
+
+
+processors:
+  batch:
+    # Time duration after which a batch will be sent regardless of size.
+    timeout: 200ms 
+    # Number of spans, metric data points, or log records after which a batch will be sent regardless of the timeout.
+    send_batch_size: 10 
+    # The upper limit of the batch size. 0 means no upper limit of the batch size. This property ensures that larger batches are split into smaller units.
+    send_batch_max_size: 10000
+
+extensions:
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [kafka/traces]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [kafka/metrics]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [kafka/logs]
